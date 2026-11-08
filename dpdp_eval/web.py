@@ -139,6 +139,26 @@ def _rubric_md() -> str:
     return "\n".join(rows)
 
 
+CSS = """
+.gradio-container {max-width: 1120px !important; margin: auto;}
+#hero h1 {margin-bottom: 0.2em;}
+#hero p {font-size: 1.05em;}
+@media (min-width: 900px) {#report {min-height: 420px;}}
+footer {visibility: hidden;}
+"""
+
+WAITING = """### Your report shows up here
+
+For each of the 11 checks you get a pass or a fail, the line from your notice the judge relied on, and what the
+law asks for when something is missing.
+
+**What the eval found:** of 239 notices written by four AI models, none passed every check. The ones most often
+missed are how to withdraw consent, how to complain to the Data Protection Board, the right to nominate someone,
+and offering the notice in an Indian language. See the *Model leaderboard* tab.
+
+<small>No notice to hand? Pick one under *Or try an example*.</small>"""
+
+
 def build() -> gr.Blocks:
     ex = _examples()
     with gr.Blocks(title="DPDP Notice Check") as demo:
@@ -146,7 +166,8 @@ def build() -> gr.Blocks:
             "# 🔏 DPDP Notice Check\n"
             "Paste a privacy notice. An AI judge checks it against the **11 things India's Digital Personal Data "
             "Protection Act, 2023 and DPDP Rules, 2025 require a consent notice to say**, and quotes the line it "
-            f"relied on for each. This is the live judge from an open eval of AI models. [Code, data and results]({REPO_URL})."
+            f"relied on for each. This is the live judge from an open eval of AI models. [Code, data and results]({REPO_URL}).",
+            elem_id="hero",
         )
         with gr.Tab("Check a notice"):
             with gr.Row():
@@ -162,9 +183,9 @@ def build() -> gr.Blocks:
                     kids = gr.Checkbox(label="Some users are under 18")
                     with gr.Row():
                         go = gr.Button("Check it", variant="primary")
-                        pick = gr.Dropdown(list(ex), label="…or try an example", value=None)
+                        pick = gr.Dropdown(list(ex), label="Or try an example", value=None)
                 with gr.Column():
-                    out = gr.Markdown()
+                    out = gr.Markdown(WAITING, elem_id="report")
             go.click(on_check, [notice, desc, data, kids], out)
             pick.change(lambda k: ex[k] if k else (gr.skip(),) * 4, pick, [notice, desc, data, kids])
         with gr.Tab("Model leaderboard"):
@@ -172,11 +193,17 @@ def build() -> gr.Blocks:
         with gr.Tab("The 11 checks"):
             gr.Markdown(_rubric_md())
             gr.Markdown(f"Full method, judge validation and limits: [README]({REPO_URL}#readme)")
+        gr.Markdown(
+            "<small>General guidance on the minimum content of a consent notice under the DPDP Act, 2023 and DPDP "
+            "Rules, 2025. It is not legal advice, and courts and the Board have not interpreted these rules yet. "
+            "Your notice is sent to Google's Gemini API to be judged; this app does not store it. "
+            f"Built by Natik Chhabra with Claude as a coding partner · [GitHub]({REPO_URL})</small>"
+        )
     return demo
 
 
 def main() -> None:
-    build().launch()
+    build().launch(theme=gr.themes.Soft(primary_hue="blue"), css=CSS)
 
 
 if __name__ == "__main__":
