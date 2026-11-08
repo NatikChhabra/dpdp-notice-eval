@@ -128,10 +128,20 @@ def summarise_validation(judge: str, split: str, out_dir: Path = RESULTS / "judg
 # ---------- generation + judging ----------
 
 
-def generate(models: list[str], conditions=CONDITIONS, llm=None, path: Path = RESULTS / "generations.jsonl") -> None:
-    done = {(r["model"], r["scenario"], r["condition"]) for r in _read_jsonl(path)}
+def _gen_dir(gen_dir: Path | None) -> Path:
+    return gen_dir or RESULTS / "generations"
+
+
+def load_generations(gen_dir: Path | None = None) -> list[dict]:
+    """All generated notices, one JSONL file per model (so models can run in parallel)."""
+    return [r for p in sorted(_gen_dir(gen_dir).glob("*.jsonl")) for r in _read_jsonl(p)]
+
+
+def generate(models: list[str], conditions=CONDITIONS, llm=None, gen_dir: Path | None = None) -> None:
     llm = llm or GeminiLLM()
     for model in models:
+        path = _gen_dir(gen_dir) / f"{_safe(model)}.jsonl"
+        done = {(r["model"], r["scenario"], r["condition"]) for r in _read_jsonl(path)}
         for s in load_scenarios():
             for cond in conditions:
                 if (model, s.id, cond) in done:
@@ -151,11 +161,11 @@ def generate(models: list[str], conditions=CONDITIONS, llm=None, path: Path = RE
             break
 
 
-def judge_all(judge: str, llm=None, gen_path: Path = RESULTS / "generations.jsonl") -> Path:
+def judge_all(judge: str, llm=None, gen_dir: Path | None = None) -> Path:
     scen = {s.id: s for s in load_scenarios()}
     out = RESULTS / f"judgments-{_safe(judge)}.jsonl"
     done = {(r["model"], r["scenario"], r["condition"]) for r in _read_jsonl(out)}
-    todo = [g for g in _read_jsonl(gen_path) if (g["model"], g["scenario"], g["condition"]) not in done]
+    todo = [g for g in load_generations(gen_dir) if (g["model"], g["scenario"], g["condition"]) not in done]
     if judge != "baseline" and todo:
         llm = llm or GeminiLLM()
     for g in todo:
