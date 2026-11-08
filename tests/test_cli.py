@@ -38,3 +38,13 @@ def test_validate_judge_with_baseline(tmp_path):
     assert s["notices"] == s["of"] == 20
     assert s["all"]["accuracy"] > 0.8
     assert (tmp_path / "dev-baseline.md").exists()
+
+
+def test_generate_core_and_max_calls(tmp_path):
+    llm = FakeLLM(fn=lambda model, prompt: "n")
+    cli.generate(["m"], ("dpdp",), llm=llm, gen_dir=tmp_path, core_only=True, max_calls=5)
+    assert len(llm.calls) == 5
+    cli.generate(["m"], ("dpdp",), llm=llm, gen_dir=tmp_path, core_only=True)
+    assert len(llm.calls) == 12
+    rows = cli.load_generations(tmp_path)
+    assert {r["scenario"] for r in rows} == set(cli.CORE_IDS)

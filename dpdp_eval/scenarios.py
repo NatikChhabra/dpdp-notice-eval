@@ -12,6 +12,13 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 # business needs a DPDP notice? "dpdp" names the Act and Rules: does it know what they require?
 CONDITIONS = ("plain", "dpdp")
 
+# Every other scenario (12, five with children). Models with a tiny free quota (20 requests a day)
+# are run on these only, and the headline leaderboard compares all models on this same set.
+CORE_IDS = (
+    "pathshala", "sehat", "khelo", "safar", "fitmitra", "bima",
+    "coachify", "rasoi", "swasthya", "library", "gym", "scholar",
+)  # fmt: skip
+
 
 @dataclass(frozen=True)
 class Scenario:

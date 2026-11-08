@@ -25,7 +25,7 @@ from .judge import Result, judge_notice
 from .llm import GeminiLLM, LLMError, QuotaExhausted
 from .metrics import bootstrap_ci, md_table, per_check
 from .rubric import CHECKS
-from .scenarios import CONDITIONS, load_scenarios, writer_prompt
+from .scenarios import CONDITIONS, CORE_IDS, load_scenarios, writer_prompt
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
@@ -137,15 +137,28 @@ def load_generations(gen_dir: Path | None = None) -> list[dict]:
     return [r for p in sorted(_gen_dir(gen_dir).glob("*.jsonl")) for r in _read_jsonl(p)]
 
 
-def generate(models: list[str], conditions=CONDITIONS, llm=None, gen_dir: Path | None = None) -> None:
+def generate(
+    models: list[str],
+    conditions=CONDITIONS,
+    llm=None,
+    gen_dir: Path | None = None,
+    core_only: bool = False,
+    max_calls: int | None = None,
+) -> None:
+    """max_calls caps calls per model per run, to leave free quota for the live apps."""
     llm = llm or GeminiLLM()
+    scenarios = [s for s in load_scenarios() if not core_only or s.id in CORE_IDS]
     for model in models:
         path = _gen_dir(gen_dir) / f"{_safe(model)}.jsonl"
         done = {(r["model"], r["scenario"], r["condition"]) for r in _read_jsonl(path)}
-        for s in load_scenarios():
+        calls = 0
+        for s in scenarios:
             for cond in conditions:
                 if (model, s.id, cond) in done:
                     continue
+                if max_calls is not None and calls >= max_calls:
+                    break
+                calls += 1
                 try:
                     text = llm.generate(model, writer_prompt(s, cond), temperature=0.7)
                 except QuotaExhausted as e:
@@ -258,6 +271,8 @@ def main(argv: list[str] | None = None) -> None:
     g = sub.add_parser("generate")
     g.add_argument("--models", required=True)
     g.add_argument("--conditions", default=",".join(CONDITIONS))
+    g.add_argument("--core", action="store_true", help="only the 12 core scenarios")
+    g.add_argument("--max-calls", type=int, default=None, help="cap on calls per model in this run")
     j = sub.add_parser("judge")
     j.add_argument("--judge", required=True)
     r = sub.add_parser("report")
@@ -276,7 +291,12 @@ def main(argv: list[str] | None = None) -> None:
             )
         )
     elif a.cmd == "generate":
-        generate([m.strip() for m in a.models.split(",") if m.strip()], tuple(a.conditions.split(",")))
+        generate(
+            [m.strip() for m in a.models.split(",") if m.strip()],
+            tuple(a.conditions.split(",")),
+            core_only=a.core,
+            max_calls=a.max_calls,
+        )
     elif a.cmd == "judge":
         judge_all(a.judge)
     elif a.cmd == "report":
