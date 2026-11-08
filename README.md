@@ -69,7 +69,7 @@ An LLM judge is only useful if it agrees with the right answer. So before judgin
 | Judge | Synthetic dev (20 notices) | Synthetic held-out test (40 notices) | Real notices, hand-labelled (23) |
 |---|---|---|---|
 | **`gemini-3.5-flash-lite`** (chosen) | 99.0% agreement, κ 0.98 | **98.8%, κ 0.98** | **96.7%, κ 0.93** |
-| `gemma-4-31b-it` (open weights; second judge) | 100%, κ 1.00 (16 of 20 notices; the free API returned errors on 4) | – | 95.0%, κ 0.90 (15 of 23 notices; the rest hit API errors) |
+| `gemma-4-31b-it` (open weights; second judge) | 100%, κ 1.00 (16 of 20 notices; the free API returned errors on 4) | not run (free quota) | 95.0%, κ 0.90 (15 of 23 notices; the rest hit API errors) |
 | Keyword baseline (no AI) | 95.6%, κ 0.91 | 97.8%, κ 0.96 | 92.5%, κ 0.85 |
 
 Agreement is over every (notice, check) pair; κ is Cohen's kappa, which corrects for agreement by chance. Full tables, including every disagreement, are in [`results/judge_validation/`](results/judge_validation/).
