@@ -10,18 +10,19 @@ S = {s.id: s for s in load_scenarios()}
 
 def test_generate_judge_report_resume(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "RESULTS", tmp_path)
-    gen = tmp_path / "generations.jsonl"
+    gen = tmp_path / "generations"
     llm = FakeLLM(fn=lambda model, prompt: f"notice by {model}")
-    cli.generate(["m1", "m2"], ("plain",), llm=llm, path=gen)
+    cli.generate(["m1", "m2"], ("plain",), llm=llm, gen_dir=gen)
     assert len(llm.calls) == 48
-    cli.generate(["m1", "m2"], ("plain",), llm=llm, path=gen)  # resumes: nothing new
+    assert sorted(p.name for p in gen.iterdir()) == ["m1.jsonl", "m2.jsonl"]
+    cli.generate(["m1", "m2"], ("plain",), llm=llm, gen_dir=gen)  # resumes: nothing new
     assert len(llm.calls) == 48
 
     def judge_fn(model, prompt):
         sid = next(s for s in S.values() if s.facts() in prompt)
         return verdict_json(sid, {"nomination": "pass", "contact": "pass"})
 
-    out = cli.judge_all("j", llm=FakeLLM(fn=judge_fn), gen_path=gen)
+    out = cli.judge_all("j", llm=FakeLLM(fn=judge_fn), gen_dir=gen)
     rows = [json.loads(x) for x in out.read_text().splitlines()]
     assert len(rows) == 48
     rep = cli.report("j")

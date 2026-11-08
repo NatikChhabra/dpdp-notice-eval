@@ -16,7 +16,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: run-eval
+  group: run-eval-${{ inputs.command }}
   cancel-in-progress: false
 jobs:
   run:
