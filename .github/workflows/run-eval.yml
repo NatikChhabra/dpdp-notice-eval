@@ -51,4 +51,10 @@ jobs:
           git add results/ || true
           if git diff --cached --quiet; then echo "no new results"; exit 0; fi
           git commit -m "results: ${{ inputs.command }}"
-          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done
+          # Results files are append-only JSONL; .gitattributes merges them with the union driver.
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q && git push -q; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 5))
+          done
+          echo "::error::could not push results"; exit 1
