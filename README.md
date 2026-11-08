@@ -9,7 +9,9 @@ An open eval: 24 Indian businesses, 11 legal checks (each cited to the Act or Ru
 [![Live demo](https://img.shields.io/badge/Live%20demo-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/spaces/Natik22may/dpdp-notice-check)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-<!--DEMO_GIF-->
+<img src="docs/demo.gif" width="820" alt="The demo checking a privacy notice that Gemini wrote, then the model leaderboard"/>
+
+<sub>A notice Gemini wrote for a children's clinic, checked by the judge. The judge's real output from the eval is replayed locally for the recording; the <a href="https://huggingface.co/spaces/Natik22may/dpdp-notice-check">live demo</a> calls it fresh.</sub>
 
 </div>
 
@@ -19,14 +21,24 @@ India's **Digital Personal Data Protection Act, 2023** and the **DPDP Rules, 202
 
 YC's Fall 2026 Requests for Startups asks for [**AI-Native Compliance Infrastructure**](https://www.ycombinator.com/rfs) (Daivik Goel). That request is about financial compliance; this project applies the same idea to privacy law and asks a narrower question first: **when an AI writes a compliance document, how do you check it, at scale, in a way you can trust?** That is an eval problem.
 
-<!--HEADLINE-->
+## What I found
+
+Across **239 notices** from 4 models, **not one passed every check**. The best single notice met 9 of 11.
+
+- **Without being told about the law, every model scored 45–48%.** The notices list the data, the purposes and a contact, and that is about it: almost none say how to withdraw consent or how to use the rights to access, correct and erase.
+- **Naming the DPDP Act and Rules helps, but only up to a point: 56–65%.** Withdrawal and the rights improve a lot for three of the four models. Three duties stay almost untouched: the option to read the notice in an Indian language (**0%** for every model), the right to nominate someone (**0–8%**), and how to complain to the Data Protection Board (**0–17%**). With children's data, the most a model managed was 40%.
+- **One line in my own prompt was hiding this.** My first "names the law" prompt also said *"use only the facts below; don't invent other data or purposes"*. Grepping the outputs suggested that models read it as "leave out anything not in the facts", including the Board and nomination. With that line, scores fall back to 47–50%, the same as not naming the law at all. So the main result uses the prompt without it, and the old one is kept as a comparison.
+
+Best model: **`gemini-3.5-flash-lite` at 65%** (95% CI 59–70%) when the law is named. The differences between models are small compared with the gap to full compliance.
+
 
 ## What it measures
 
-Each model gets the facts of a business (what data it collects, why, who the privacy contact is, whether children use it) and is asked to write the consent notice. Two versions of the request:
+Each model gets the facts of a business (what data it collects, why, who the privacy contact is, whether children use it) and is asked to write the consent notice. Three versions of the request:
 
-- **plain**: "write the privacy notice we show users when they sign up". The law isn't named. Does the model know an Indian business needs a DPDP notice?
-- **dpdp**: the same, plus "it must comply with India's DPDP Act, 2023 and DPDP Rules, 2025". Does it know what the law requires?
+- **plain**: "write the privacy notice we show users when they sign up", plus "use only the facts below". The law isn't named. Does the model know an Indian business needs a DPDP notice?
+- **names the law** (the main result): the same request, without "use only the facts", plus "it must comply with India's DPDP Act, 2023 and DPDP Rules, 2025". Does the model know what the law requires?
+- **names the law + "use only the facts"** (comparison): my first design. It turned out to suppress required content, so it is kept to show the effect (see [What I found](#what-i-found)).
 
 Every notice is scored on these checks (the children check applies only to the 7 businesses with users under 18):
 
@@ -51,18 +63,18 @@ The rubric only covers what the law says a *notice* must contain. It does not ju
 An LLM judge is only useful if it agrees with the right answer. So before judging any model, each candidate judge was tested in three ways:
 
 1. **Synthetic notices with known answers** (`dpdp_eval/data/validation/`). Notices are built from sections. For each check we pick a compliant section or a realistic mistake: a vague data list, a 120-day reply period, "the relevant supervisory authority", withdrawal only by registered post, children defined as under 13, personalised ads for children, and so on. The correct verdicts follow from the choices. The set is split by business: **dev** (4 businesses, 20 notices) was used to pick the judge, **test** (8 businesses, 40 notices) was held out.
-2. **Real notices, hand-labelled** (`dpdp_eval/data/validation/real_labels.jsonl`). Real model notices were labelled before any judge saw them (see the commit history and [the labelling rules](docs/labelling.md)).
-3. **Quote checking.** For every check the judge must quote the line it relied on. The code then confirms the quote exists in the notice, which catches a judge inventing support for a "pass".
+2. **Real notices, hand-labelled** (`dpdp_eval/data/validation/real_labels.jsonl`). Real model notices were labelled by hand. Most were labelled before any judge saw them; the last 7 were labelled after a judge had run, without looking at its verdicts (see the commit history and [the labelling rules](docs/labelling.md), which also disclose two corrections).
+3. **Quote checking.** For every check the judge must quote the line it relied on. The code then confirms the quote exists in the notice, which catches a judge inventing support for a "pass". In the main run, 1 of the 1,016 quoted passes was not found word for word in its notice (a paraphrase). An early version of this check wrongly flagged bulleted lists quoted as one line; it was fixed and re-run on the stored verdicts with `python -m dpdp_eval recheck-quotes`.
 
-| Judge | Synthetic dev (20 notices) | Synthetic held-out test (40 notices) | Real notices, hand-labelled (20) |
+| Judge | Synthetic dev (20 notices) | Synthetic held-out test (40 notices) | Real notices, hand-labelled (23) |
 |---|---|---|---|
-| **`gemini-3.5-flash-lite`** (chosen) | 99.0% agreement, κ 0.98 | **98.8%, κ 0.98** | **97.6%, κ 0.95** |
+| **`gemini-3.5-flash-lite`** (chosen) | 99.0% agreement, κ 0.98 | **98.8%, κ 0.98** | **96.7%, κ 0.93** |
 | `gemma-4-31b-it` (open weights; second judge) | 100%, κ 1.00 (16 of 20 notices; the free API returned errors on 4) | – | 97.2%, κ 0.94 (10 notices) |
-| Keyword baseline (no AI) | 95.6%, κ 0.91 | 97.8%, κ 0.96 | 94.3%, κ 0.88 |
+| Keyword baseline (no AI) | 95.6%, κ 0.91 | 97.8%, κ 0.96 | 92.5%, κ 0.85 |
 
 Agreement is over every (notice, check) pair; κ is Cohen's kappa, which corrects for agreement by chance. Full tables, including every disagreement, are in [`results/judge_validation/`](results/judge_validation/).
 
-Where the judges differ is the interesting part. On the children's-data check in real notices, the keyword baseline was right **1 time in 9**, and Flash Lite was right **9 in 9**. On withdrawal, all of them struggle (Flash Lite 85%), because "you can withdraw consent at any time" with no stated method is a borderline case even for people.
+Where the judges differ is the interesting part. On the children's-data check in real notices, the keyword baseline was right **1 time in 10**, and Flash Lite was right **10 in 10**. Withdrawal and the rights are where every judge struggles (Flash Lite 83% on each, and it is more lenient than my labels on the rights), because "you can withdraw consent at any time" with no stated method is a borderline case even for people.
 
 Flash Lite was chosen because it was the most accurate judge that finished every notice, and because its free quota (500 requests a day) can cover the whole eval. 3.6 and 3.8 Flash get only 20 a day, and Gemma's free API often answered "500" or "503".
 
@@ -70,14 +82,43 @@ Flash Lite was chosen because it was the most accurate judge that finished every
 
 ## Leaderboard
 
-<!--LEADERBOARD-->
+**Core set: 12 businesses, every model.** Score = share of applicable checks passed. 95% CI from a bootstrap over businesses. Columns on the right are pass rates per check.
+
+**Prompt: plain request (no law named)**
+
+| model | notices | score | 95% CI | fully compliant | data | purpose | withdraw | rights | nominate | grievance | Board | contact | language | no GDPR | children |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `gemini-3.1-flash-lite` | 12 | **48%** | 46%–50% | 0% | 100% | 100% | 8% | 0% | 0% | 92% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.5-flash-lite` | 12 | **47%** | 44%–49% | 0% | 100% | 100% | 0% | 0% | 0% | 83% | 0% | 100% | 0% | 100% | 0% |
+| `gemma-4-26b-a4b-it` | 12 | **46%** | 43%–48% | 0% | 100% | 92% | 0% | 0% | 0% | 83% | 0% | 100% | 0% | 100% | 0% |
+| `gemma-4-31b-it` | 12 | **45%** | 42%–48% | 0% | 100% | 92% | 0% | 0% | 0% | 75% | 0% | 100% | 0% | 100% | 0% |
+
+**Prompt: request names the DPDP Act and Rules**
+
+| model | notices | score | 95% CI | fully compliant | data | purpose | withdraw | rights | nominate | grievance | Board | contact | language | no GDPR | children |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `gemini-3.5-flash-lite` | 12 | **65%** | 59%–70% | 0% | 100% | 100% | 58% | 75% | 8% | 100% | 17% | 100% | 0% | 100% | 40% |
+| `gemma-4-31b-it` | 12 | **61%** | 58%–63% | 0% | 100% | 100% | 50% | 83% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.1-flash-lite` | 12 | **60%** | 54%–65% | 0% | 100% | 100% | 58% | 67% | 8% | 92% | 0% | 100% | 0% | 100% | 0% |
+| `gemma-4-26b-a4b-it` | 12 | **56%** | 52%–60% | 0% | 100% | 100% | 0% | 58% | 0% | 100% | 8% | 100% | 0% | 100% | 40% |
+
+**Prompt: names the law and adds 'use only the facts below' (comparison)**
+
+| model | notices | score | 95% CI | fully compliant | data | purpose | withdraw | rights | nominate | grievance | Board | contact | language | no GDPR | children |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `gemma-4-26b-a4b-it` | 12 | **50%** | 47%–53% | 0% | 100% | 100% | 8% | 8% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.5-flash-lite` | 12 | **50%** | 48%–52% | 0% | 100% | 100% | 17% | 0% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
+| `gemma-4-31b-it` | 12 | **50%** | 47%–52% | 0% | 100% | 100% | 25% | 0% | 0% | 92% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.1-flash-lite` | 12 | **47%** | 45%–49% | 0% | 100% | 100% | 0% | 0% | 0% | 92% | 0% | 100% | 0% | 100% | 0% |
+
+The full tables, including the 24-business set for the models with enough free quota, are in [`results/leaderboard-gemini-3.5-flash-lite.md`](results/leaderboard-gemini-3.5-flash-lite.md). Every verdict, with the judge's quote and reasoning, is in [`results/judgments-gemini-3.5-flash-lite.jsonl`](results/judgments-gemini-3.5-flash-lite.jsonl).
 
 ## Run it
 
 ```bash
 git clone https://github.com/NatikChhabra/dpdp-notice-eval && cd dpdp-notice-eval
 pip install -r requirements-dev.txt
-pytest                                                    # 30 tests, no API key needed
+pytest                                                    # 32 tests, no API key needed
 python -m dpdp_eval validate-judge --judge baseline --split test
 
 export GEMINI_API_KEY=...                                  # free key from Google AI Studio
@@ -98,18 +139,18 @@ Every model call is appended to a JSONL file as soon as it returns, so a run tha
 | Catching hallucinated evidence | `judge.evidence_found` |
 | Prompt-injection guard (the notice is untrusted input) | `JUDGE_SYSTEM` in `judge.py` |
 | Bootstrap confidence intervals, clustered by business | `metrics.bootstrap_ci` |
-| An ablation to rule out a prompt confound | `ABLATIONS` in `scenarios.py` |
+| Finding and fixing a confound in my own prompt | `CONDITIONS` in `scenarios.py` |
 | Working inside tiny free-tier rate limits (pacing, resume, per-model files) | `llm.py`, `cli.py` |
 | Testing LLM code without API calls | `tests/` (a fake model) |
 
 ## Limits (please read)
 
 - **Not legal advice.** It checks the minimum content the Act and Rules require in a notice, as read by the author. Courts and the Data Protection Board have not interpreted these rules yet.
-- **Small and synthetic.** 24 made-up businesses, and only the models a free Gemini API key can reach (Gemini Flash/Flash Lite and open-weight Gemma 4). Frontier "Pro" models are not on the free tier, so they aren't here.
+- **Small and synthetic.** 24 made-up businesses, and only the models a free Gemini API key can reach (Gemini 3.1 and 3.5 Flash Lite, and open-weight Gemma 4; Gemini 3.6 and 3.8 Flash allow only 20 requests a day, so they are being added to the core set a little at a time). Frontier "Pro" models are not on the free tier, so they aren't here.
 - **The judge is a Google model judging Google models.** Self-preference is a known LLM-judge bias. The hand-labelled real notices and a second judge from a different model family (Gemma, open weights) are there to show how much it matters; see the judge table.
-- **The hand labels were made by Claude** (the AI that helped build this) under the rules in `docs/labelling.md`, written before the judges ran. Natik spot-checked them. Two lawyers would still disagree on some borderline cases, such as whether "manage your settings" counts as a way to withdraw consent.
+- **The hand labels were made by Claude** (the AI that helped build this) under the rules in `docs/labelling.md`, written before the judges ran. No lawyer has checked them. Two lawyers would still disagree on some borderline cases, such as whether "manage your settings" counts as a way to withdraw consent.
 - **The synthetic judge-test set is easy.** It is templated, so near-perfect scores on it mean little alone. The real-notice numbers matter more.
-- **Phrasing matters.** Results are for two fixed prompts (plus one ablation). A founder who pastes the full text of the Rules will get better notices.
+- **Phrasing matters.** Results are for three fixed prompts, and the comparison above shows how much one line can change them. A founder who pastes the full text of the Rules may well get better notices; that was not tested.
 
 ## Built with AI, openly
 

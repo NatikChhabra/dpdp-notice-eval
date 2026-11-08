@@ -50,3 +50,13 @@ def test_too_short_is_rejected():
 
 def test_app_builds():
     assert web.build() is not None
+
+
+def test_quoted_list_stays_inside_the_blockquote():
+    from dpdp_eval.judge import Result
+
+    res = Result(
+        {"data_itemised": "pass"}, {"data_itemised": "* Name\n*   Mobile number"}, {"data_itemised": "Listed."}
+    )
+    md = web.result_md(res, "note")
+    assert "> Name; Mobile number\n\nListed." in md

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 
 import gradio as gr
@@ -59,6 +60,12 @@ def run_judge(notice: str, description: str, data: str, children: bool) -> tuple
     return Result(baseline_verdicts(s, notice)), note
 
 
+def _one_line(t: str) -> str:
+    """A quote as one line, so a quoted bullet list doesn't break out of the blockquote."""
+    lines = [re.sub(r"^\s*(?:[*\-•]|\d+[.)])\s+", "", x).replace("*", "").strip() for x in (t or "").splitlines()]
+    return "; ".join(x.rstrip(";") for x in lines if x)
+
+
 def result_md(res: Result, note: str) -> str:
     passed = sum(v == "pass" for v in res.verdicts.values())
     total = len(res.verdicts)
@@ -67,11 +74,11 @@ def result_md(res: Result, note: str) -> str:
     for cid, v in sorted(res.verdicts.items(), key=lambda kv: kv[1] != "fail"):
         c = BY_ID[cid]
         mark = "✅" if v == "pass" else "❌"
-        out.append(f"{mark} **{_esc(c.title)}**  <small>({_esc(c.cites)})</small>")
+        out += [f"{mark} **{_esc(c.title)}**  <small>({_esc(c.cites)})</small>", ""]
         if res.evidence.get(cid):
-            out.append(f"> {_esc(res.evidence[cid])}")
+            out += [f"> {_esc(_one_line(res.evidence[cid]))}", ""]
         if res.reasoning.get(cid):
-            out.append(f"{_esc(res.reasoning[cid])}")
+            out.append(_esc(res.reasoning[cid]))
         if v == "fail":
             out.append(f"<small>What the law asks: {_esc(c.requirement)}</small>")
         if cid in res.unverified:
