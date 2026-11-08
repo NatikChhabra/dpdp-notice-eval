@@ -6,6 +6,7 @@ quota is used up) the keyword baseline answers instead, and the page says so.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -98,6 +99,14 @@ def _examples() -> dict[str, tuple[str, str, str, bool]]:
 
     scen = {s.id: s for s in load_scenarios()}
     out = {}
+    real = json.loads((DATA_DIR / "example_real.json").read_text(encoding="utf-8"))
+    s = scen[real["scenario"]]
+    out["A notice Gemini wrote when asked for DPDP compliance (children's clinic)"] = (
+        real["notice"],
+        s.description,
+        "\n".join(s.data),
+        s.children,
+    )
     for label, rid in (
         ("A compliant notice (kids' learning app)", "pathshala-0"),
         ("A flawed notice (grocery app)", "kiranakart-3"),
