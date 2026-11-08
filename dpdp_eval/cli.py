@@ -1,7 +1,7 @@
 """Command line: python -m dpdp_eval <command>.
 
   models                        list Gemini API models your key can use
-  build-validation              (re)write data/validation/{dev,test}.jsonl
+  build-validation              (re)write dpdp_eval/data/validation/{dev,test}.jsonl
   validate-judge --judge M      score a judge model (or --judge baseline) against the known labels
   generate --models A,B         ask each model to write a notice for every scenario and condition
   judge --judge M               judge every generated notice
@@ -25,7 +25,7 @@ from .judge import Result, judge_notice
 from .llm import GeminiLLM, LLMError, QuotaExhausted
 from .metrics import bootstrap_ci, md_table, per_check
 from .rubric import CHECKS
-from .scenarios import CONDITIONS, CORE_IDS, load_scenarios, writer_prompt
+from .scenarios import CONDITIONS, CORE_IDS, DATA_DIR, load_scenarios, writer_prompt
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
@@ -129,7 +129,7 @@ def validate_real(judge: str, llm=None, out_dir: Path | None = None) -> dict:
     """Agreement with hand labels on real model notices. Reuses (and adds to) the judge's judgments file."""
     out_dir = out_dir or RESULTS / "judge_validation"
     scen = {s.id: s for s in load_scenarios()}
-    labels = _read_jsonl(ROOT / "data" / "validation" / "real_labels.jsonl")
+    labels = _read_jsonl(DATA_DIR / "validation" / "real_labels.jsonl")
     gens = {(g["model"], g["scenario"], g["condition"]): g for g in load_generations()}
     jpath = RESULTS / f"judgments-{_safe(judge)}.jsonl"
     judged = {(r["model"], r["scenario"], r["condition"]): r for r in _read_jsonl(jpath)}

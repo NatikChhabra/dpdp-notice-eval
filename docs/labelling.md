@@ -1,6 +1,6 @@
 # How the real notices were hand-labelled
 
-`data/validation/real_labels.jsonl` holds verdicts for real notices written by the models under test.
+`dpdp_eval/data/validation/real_labels.jsonl` holds verdicts for real notices written by the models under test.
 They were labelled **before any LLM judge saw these notices** (check the commit times), by reading
 each notice against the rubric in `dpdp_eval/rubric.py`. The labeller was Claude, working under
 Natik's direction; Natik spot-checks a sample (see README).

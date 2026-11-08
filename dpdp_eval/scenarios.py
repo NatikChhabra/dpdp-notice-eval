@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 
 # Two ways a founder might ask. "plain" never mentions the law: does the model know an Indian
 # business needs a DPDP notice? "dpdp" names the Act and Rules: does it know what they require?
