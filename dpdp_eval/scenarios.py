@@ -56,20 +56,48 @@ class Scenario:
         )
 
     def facts(self) -> str:
-        """The business facts, as given to both the writer model and the judge."""
+        """The business facts, as given to both the writer model and the judge.
+
+        Facts left empty (in a notice someone pastes into the demo) are marked as not provided,
+        so the judge checks the notice on its own terms instead of against made-up facts.
+        """
+        unknown = "  (not provided: judge only whether the notice itself is specific)"
         lines = [
-            f"Business: {self.name}, {self.city}, India. {self.description}",
-            f"Website: {self.website}",
+            f"Business: {self.name}, {self.city}, India. {self.description}".replace(", , India", ", India"),
+            f"Website: {self.website or '(not provided)'}",
             "Personal data collected:",
-            *[f"  - {x}" for x in self.data],
+            *([f"  - {x}" for x in self.data] or [unknown]),
             "Purposes:",
-            *[f"  - to {x}" for x in self.purposes],
+            *([f"  - to {x}" for x in self.purposes] or [unknown]),
             f"Users under 18: {'yes' if self.children else 'no'}",
-            f"Privacy contact: {self.contact_name}, {self.contact_title}, {self.contact_email}",
-            f"We reply to complaints within {self.grievance_days} days.",
-            "Users can manage settings in the app/website under Settings, and get help under Help.",
         ]
+        if self.contact_email:
+            lines.append(f"Privacy contact: {self.contact_name}, {self.contact_title}, {self.contact_email}")
+        if self.grievance_days:
+            lines.append(f"We reply to complaints within {self.grievance_days} days.")
+        if self.id != "custom":
+            lines.append("Users can manage settings in the app/website under Settings, and get help under Help.")
         return "\n".join(lines)
+
+
+def custom_scenario(description: str = "", data: str = "", children: bool = False) -> Scenario:
+    """A scenario for a notice pasted into the demo, where we only know what the user tells us."""
+    items = tuple(x.strip(" -•*\t") for x in data.replace(",", "\n").splitlines() if x.strip(" -•*\t"))
+    return Scenario(
+        id="custom",
+        name="The business",
+        sector="",
+        city="",
+        description=description.strip() or "(description not provided)",
+        website="",
+        data=items,
+        purposes=(),
+        children=children,
+        contact_title="",
+        contact_name="",
+        contact_email="",
+        grievance_days=0,
+    )
 
 
 def load_scenarios(path: Path | None = None) -> list[Scenario]:
