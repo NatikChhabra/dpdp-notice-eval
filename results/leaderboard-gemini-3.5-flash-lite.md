@@ -22,6 +22,13 @@ Score = share of applicable checks passed (10, or 11 if the business has users u
 | `gemma-4-31b-it` | 10 | **49%** | 46%–52% | 0% | 100% | 100% | 10% | 0% | 0% | 90% | 0% | 100% | 0% | 100% | 0% |
 | `gemini-3.1-flash-lite` | 12 | **47%** | 45%–49% | 0% | 100% | 100% | 0% | 0% | 0% | 92% | 0% | 100% | 0% | 100% | 0% |
 
+**Prompt: ablation: names the law, without the 'use only the facts' line**
+
+| model | notices | score | 95% CI | fully compliant | data | purpose | withdraw | rights | nominate | grievance | Board | contact | language | no GDPR | children |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `gemini-3.5-flash-lite` | 12 | **65%** | 59%–70% | 0% | 100% | 100% | 58% | 75% | 8% | 100% | 17% | 100% | 0% | 100% | 40% |
+| `gemini-3.1-flash-lite` | 12 | **60%** | 54%–65% | 0% | 100% | 100% | 58% | 67% | 8% | 92% | 0% | 100% | 0% | 100% | 0% |
+
 ### Full set: 24 businesses (models with enough free quota)
 
 **Prompt: plain request (no law named)**
