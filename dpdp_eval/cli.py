@@ -374,6 +374,8 @@ def main(argv: list[str] | None = None) -> None:
     vr.add_argument("--judge", required=True)
     r = sub.add_parser("report")
     r.add_argument("--judge", required=True)
+    sp = sub.add_parser("smoke-space", help="call the live Hugging Face demo with an example notice")
+    sp.add_argument("--space", default="Natik22may/dpdp-notice-check")
     a = ap.parse_args(argv)
 
     if a.cmd == "models":
@@ -387,6 +389,14 @@ def main(argv: list[str] | None = None) -> None:
                 {k: s[k] for k in ("judge", "split", "notices", "of", "all", "unverified_pass_quotes")}, indent=2
             )
         )
+    elif a.cmd == "smoke-space":
+        from gradio_client import Client
+
+        notice = synth.load("dev")[0]["notice"]
+        out = Client(a.space).predict(notice, "", "", False, api_name="/on_check")
+        print(out)
+        if "requirements met" not in out:
+            sys.exit("demo did not return a result")
     elif a.cmd == "validate-real":
         print(json.dumps(validate_real(a.judge)["all"], indent=2))
     elif a.cmd == "generate":
