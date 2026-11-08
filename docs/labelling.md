@@ -33,3 +33,7 @@ the other, so the agreement score is unchanged by it.
 
 Four `dpdp_open` notices were added later. They were labelled after the Flash Lite judge had run on
 them, without looking at its verdicts.
+
+Three `gemma-4-31b-it` `dpdp_open` notices were added last, so the second judge is also tested on
+open-prompt notices. They were labelled after the final Flash Lite judge run had started, without
+looking at its verdicts.

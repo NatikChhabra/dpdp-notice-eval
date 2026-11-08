@@ -54,7 +54,17 @@ An LLM judge is only useful if it agrees with the right answer. So before judgin
 2. **Real notices, hand-labelled** (`dpdp_eval/data/validation/real_labels.jsonl`). Real model notices were labelled before any judge saw them (see the commit history and [the labelling rules](docs/labelling.md)).
 3. **Quote checking.** For every check the judge must quote the line it relied on. The code then confirms the quote exists in the notice, which catches a judge inventing support for a "pass".
 
-<!--JUDGE_TABLE-->
+| Judge | Synthetic dev (20 notices) | Synthetic held-out test (40 notices) | Real notices, hand-labelled (20) |
+|---|---|---|---|
+| **`gemini-3.5-flash-lite`** (chosen) | 99.0% agreement, κ 0.98 | **98.8%, κ 0.98** | **97.6%, κ 0.95** |
+| `gemma-4-31b-it` (open weights; second judge) | 100%, κ 1.00 (16 of 20 notices; the free API returned errors on 4) | – | 97.2%, κ 0.94 (10 notices) |
+| Keyword baseline (no AI) | 95.6%, κ 0.91 | 97.8%, κ 0.96 | 94.3%, κ 0.88 |
+
+Agreement is over every (notice, check) pair; κ is Cohen's kappa, which corrects for agreement by chance. Full tables, including every disagreement, are in [`results/judge_validation/`](results/judge_validation/).
+
+Where the judges differ is the interesting part. On the children's-data check in real notices, the keyword baseline was right **1 time in 9**, and Flash Lite was right **9 in 9**. On withdrawal, all of them struggle (Flash Lite 85%), because "you can withdraw consent at any time" with no stated method is a borderline case even for people.
+
+Flash Lite was chosen because it was the most accurate judge that finished every notice, and because its free quota (500 requests a day) can cover the whole eval. 3.6 and 3.8 Flash get only 20 a day, and Gemma's free API often answered "500" or "503".
 
 **Why not just use keywords?** A keyword checker (`dpdp_eval/baseline.py`) scores almost perfectly on the synthetic set, because the same person wrote both the templates and the keywords. On real notices it falls apart exactly where the law is subtle. It passes "you may withdraw consent at any time" even when the notice never says *how*. It also passes a children's section that mentions parents and the age of 18 but says nothing about tracking or targeted ads. This was the most useful lesson of the project: **a synthetic test set you wrote yourself flatters simple methods, so you need real, hand-labelled outputs to see the difference.**
 
