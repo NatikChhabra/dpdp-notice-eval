@@ -25,6 +25,8 @@ YC's Fall 2026 Requests for Startups asks for [**AI-Native Compliance Infrastruc
 
 Across **239 notices** from 4 models, **not one passed every check**. The best single notice met 9 of 11.
 
+<p align="center"><img src="docs/checks-chart.png" width="760" alt="Dot chart of the share of notices passing each of the 11 checks. With a plain request, withdrawal, rights, the Board, nomination, language and children are all near 0%. Naming the law lifts rights to 71% and withdrawal to 42%, children to 20%, the Board to 6%, nomination to 4%, and language stays at 0%."/></p>
+
 - **Without being told about the law, every model scored 45–48%.** The notices list the data, the purposes and a contact, and that is about it: almost none say how to withdraw consent or how to use the rights to access, correct and erase.
 - **Naming the DPDP Act and Rules helps, but only up to a point: 56–65%.** Withdrawal and the rights improve a lot for three of the four models. Three duties stay almost untouched: the option to read the notice in an Indian language (**0%** for every model), the right to nominate someone (**0–8%**), and how to complain to the Data Protection Board (**0–17%**). With children's data, the most a model managed was 40%.
 - **One line in my own prompt was hiding this.** My first "names the law" prompt also said *"use only the facts below; don't invent other data or purposes"*. Grepping the outputs suggested that models read it as "leave out anything not in the facts", including the Board and nomination. With that line, scores fall back to 47–50%, the same as not naming the law at all. So the main result uses the prompt without it, and the old one is kept as a comparison.
@@ -118,7 +120,7 @@ The full tables, including the 24-business set for the models with enough free q
 ```bash
 git clone https://github.com/NatikChhabra/dpdp-notice-eval && cd dpdp-notice-eval
 pip install -r requirements-dev.txt
-pytest                                                    # 32 tests, no API key needed
+pytest                                                    # 33 tests, no API key needed
 python -m dpdp_eval validate-judge --judge baseline --split test
 
 export GEMINI_API_KEY=...                                  # free key from Google AI Studio
