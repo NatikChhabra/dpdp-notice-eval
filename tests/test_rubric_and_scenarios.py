@@ -37,3 +37,10 @@ def test_prompts_differ_only_in_the_law_line():
     assert s.facts() in plain and s.facts() in dpdp
     with pytest.raises(ValueError):
         writer_prompt(s, "nope")
+
+
+def test_open_ablation_drops_only_the_stick_to_facts_line():
+    s = load_scenarios()[0]
+    dpdp, open_ = writer_prompt(s, "dpdp"), writer_prompt(s, "dpdp_open")
+    assert "Use only the facts" in dpdp and "Use only the facts" not in open_
+    assert open_ == dpdp.replace("Use only the facts below; don't invent other data or purposes. ", "")

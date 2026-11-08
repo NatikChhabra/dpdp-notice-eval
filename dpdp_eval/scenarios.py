@@ -11,6 +11,9 @@ DATA_DIR = Path(__file__).resolve().parent / "data"
 # Two ways a founder might ask. "plain" never mentions the law: does the model know an Indian
 # business needs a DPDP notice? "dpdp" names the Act and Rules: does it know what they require?
 CONDITIONS = ("plain", "dpdp")
+# Ablation: the "dpdp" request without the line telling the model to stick to the facts, to check that
+# this line isn't what stops models adding the legally required parts (Board, nomination, language...).
+ABLATIONS = ("dpdp_open",)
 
 # Every other scenario (12, five with children). Models with a tiny free quota (20 requests a day)
 # are run on these only, and the headline leaderboard compares all models on this same set.
@@ -108,13 +111,14 @@ def load_scenarios(path: Path | None = None) -> list[Scenario]:
 
 def writer_prompt(s: Scenario, condition: str) -> str:
     """What we ask each model under test. Same facts in both conditions; only the last line differs."""
-    if condition not in CONDITIONS:
+    if condition not in CONDITIONS + ABLATIONS:
         raise ValueError(f"unknown condition {condition!r}")
+    stick = "" if condition == "dpdp_open" else "Use only the facts below; don't invent other data or purposes. "
     ask = (
         "We are launching soon. Write the privacy notice we will show users when they sign up and give consent. "
-        "Use only the facts below; don't invent other data or purposes. Write only the notice, in English, ready to publish."
+        f"{stick}Write only the notice, in English, ready to publish."
     )
-    if condition == "dpdp":
+    if condition in ("dpdp", "dpdp_open"):
         ask += (
             " It must comply with India's Digital Personal Data Protection Act, 2023 and the "
             "Digital Personal Data Protection Rules, 2025."

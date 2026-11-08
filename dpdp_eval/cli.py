@@ -25,7 +25,7 @@ from .judge import Result, judge_notice
 from .llm import GeminiLLM, LLMError, QuotaExhausted
 from .metrics import bootstrap_ci, md_table, per_check
 from .rubric import CHECKS
-from .scenarios import CONDITIONS, CORE_IDS, DATA_DIR, load_scenarios, writer_prompt
+from .scenarios import ABLATIONS, CONDITIONS, CORE_IDS, DATA_DIR, load_scenarios, writer_prompt
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
@@ -298,11 +298,16 @@ def _board(rows: list[dict]) -> list[dict]:
 def _board_md(board: list[dict]) -> list[str]:
     ids = [c.id for c in CHECKS]
     md = []
-    for cond in CONDITIONS:
+    labels = {
+        "plain": "plain request (no law named)",
+        "dpdp": "request names the DPDP Act and Rules",
+        "dpdp_open": "ablation: names the law, without the 'use only the facts' line",
+    }
+    for cond in CONDITIONS + ABLATIONS:
         sel = [b for b in board if b["condition"] == cond]
         if not sel:
             continue
-        label = "plain request (no law named)" if cond == "plain" else "request names the DPDP Act and Rules"
+        label = labels[cond]
         md.append(f"\n**Prompt: {label}**\n")
         md.append(
             md_table(
