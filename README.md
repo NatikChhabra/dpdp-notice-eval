@@ -17,7 +17,7 @@ An open eval: 24 Indian businesses, 11 legal checks (each cited to the Act or Ru
 
 ## Why
 
-India's **Digital Personal Data Protection Act, 2023** and the **DPDP Rules, 2025** (G.S.R. 846(E), notified 13 Nov 2025) say exactly what a consent notice must contain. The notice duties (Rule 3) apply from about **13 May 2027**, so thousands of Indian startups are rewriting their privacy notices now, and many will ask an AI to do it.
+India's **Digital Personal Data Protection Act, 2023** and the **DPDP Rules, 2025** (G.S.R. 846(E), notified 13 Nov 2025) say exactly what a consent notice must contain. The notice duties (Rule 3) apply from about **13 May 2027**, so Indian businesses that collect personal data need to rewrite their privacy notices before then, and many will ask an AI to do it.
 
 YC's Fall 2026 Requests for Startups asks for [**AI-Native Compliance Infrastructure**](https://www.ycombinator.com/rfs) (Daivik Goel). That request is about financial compliance; this project applies the same idea to privacy law and asks a narrower question first: **when an AI writes a compliance document, how do you check it, at scale, in a way you can trust?** That is an eval problem.
 
@@ -29,7 +29,7 @@ Across **239 notices** from 4 models, **not one passed every check**. The best s
 - **Naming the DPDP Act and Rules helps, but only up to a point: 56–65%.** Withdrawal and the rights improve a lot for three of the four models. Three duties stay almost untouched: the option to read the notice in an Indian language (**0%** for every model), the right to nominate someone (**0–8%**), and how to complain to the Data Protection Board (**0–17%**). With children's data, the most a model managed was 40%.
 - **One line in my own prompt was hiding this.** My first "names the law" prompt also said *"use only the facts below; don't invent other data or purposes"*. Grepping the outputs suggested that models read it as "leave out anything not in the facts", including the Board and nomination. With that line, scores fall back to 47–50%, the same as not naming the law at all. So the main result uses the prompt without it, and the old one is kept as a comparison.
 
-Best model: **`gemini-3.5-flash-lite` at 65%** (95% CI 59–70%) when the law is named. The differences between models are small compared with the gap to full compliance.
+Best model: **`gemini-3.5-flash-lite` at 65%** (95% CI 59–70%) when the law is named. The differences between models are small compared with the gap to full compliance, and Flash Lite is also the judge, so treat its first place with care: its confidence interval overlaps the next two models.
 
 
 ## What it measures
@@ -129,7 +129,7 @@ python -m dpdp_eval report --judge gemini-3.5-flash-lite
 python app.py                                             # the demo, at http://127.0.0.1:7860
 ```
 
-Every model call is appended to a JSONL file as soon as it returns, so a run that hits the free daily quota stops cleanly and resumes from the same point next time. The results in `results/` were produced by the [`run eval`](.github/workflows/run-eval.yml) GitHub Action, which uses the API key stored as a repository secret and commits its outputs, so every number here can be traced to a logged run.
+Every model call is appended to a JSONL file as soon as it returns, so a run that hits the free daily quota stops cleanly and resumes from the same point next time. Every model call behind `results/` was made by the [`run eval`](.github/workflows/run-eval.yml) GitHub Action, which uses the API key stored as a repository secret and commits its outputs, so every verdict can be traced to a logged run. The tables and the quote re-check are computed from those stored outputs and can be rebuilt offline (`report`, `recheck-quotes`).
 
 | AI engineering skill | Where it is |
 |---|---|
@@ -148,7 +148,7 @@ Every model call is appended to a JSONL file as soon as it returns, so a run tha
 - **Not legal advice.** It checks the minimum content the Act and Rules require in a notice, as read by the author. Courts and the Data Protection Board have not interpreted these rules yet.
 - **Small and synthetic.** 24 made-up businesses, and only the models a free Gemini API key can reach (Gemini 3.1 and 3.5 Flash Lite, and open-weight Gemma 4; Gemini 3.6 and 3.8 Flash allow only 20 requests a day, so they are being added to the core set a little at a time). Frontier "Pro" models are not on the free tier, so they aren't here.
 - **The judge is a Google model judging Google models.** Self-preference is a known LLM-judge bias. The hand-labelled real notices and a second judge from a different model family (Gemma, open weights) are there to show how much it matters; see the judge table.
-- **The hand labels were made by Claude** (the AI that helped build this) under the rules in `docs/labelling.md`, written before the judges ran. No lawyer has checked them. Two lawyers would still disagree on some borderline cases, such as whether "manage your settings" counts as a way to withdraw consent.
+- **The hand labels were made by Claude** (the AI that helped build this) under the rules in `docs/labelling.md`, written before the judges ran. No lawyer has checked them. Even two lawyers would disagree on some borderline cases, such as whether "manage your settings" counts as a way to withdraw consent.
 - **The synthetic judge-test set is easy.** It is templated, so near-perfect scores on it mean little alone. The real-notice numbers matter more.
 - **Phrasing matters.** Results are for three fixed prompts, and the comparison above shows how much one line can change them. A founder who pastes the full text of the Rules may well get better notices; that was not tested.
 
