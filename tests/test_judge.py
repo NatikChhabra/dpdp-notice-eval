@@ -35,6 +35,21 @@ def test_evidence_found_handles_markdown_case_and_ellipsis():
     assert not evidence_found("", NOTICE)
 
 
+LIST_NOTICE = "**Data we collect**\n* Name\n* Mobile number\n* Delivery address\n\nWe reply within 30 days."
+
+
+def test_evidence_found_accepts_a_list_quoted_as_one_line():
+    assert evidence_found("Name, Mobile number, and Delivery address", LIST_NOTICE)
+    assert evidence_found("Name\n* Mobile number [...] We reply within 30 days.", LIST_NOTICE)
+    # every piece must still be there
+    assert not evidence_found("Name, Mobile number, Aadhaar number", LIST_NOTICE)
+
+
+def test_absence_check_pass_needs_no_quote():
+    raw = verdict_json(ADULT, {"no_foreign_law": "pass"}, {"no_foreign_law": ""})
+    assert "no_foreign_law" not in parse_judgement(raw, ADULT, NOTICE).unverified
+
+
 def test_parse_flags_unverified_pass():
     raw = verdict_json(
         ADULT,

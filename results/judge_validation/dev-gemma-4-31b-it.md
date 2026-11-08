@@ -15,7 +15,7 @@
 | children | 5 | 1.000 | 1.000 | 1.000 | 1.000 |
 | ALL | 165 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-Passes whose quoted evidence was not found in the notice: 9 of 99.
+Passes whose quoted evidence was not found in the notice: 0 of 90 (no quote is needed for a "no foreign law" pass).
 
 ## Disagreements
 
