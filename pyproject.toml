@@ -14,7 +14,7 @@ dependencies = ["google-genai>=3.0,<4", "pydantic>=2.7,<3", "gradio>=6.31,<7"]
 packages = ["dpdp_eval"]
 
 [tool.setuptools.package-data]
-dpdp_eval = []
+dpdp_eval = ["data/*.jsonl", "data/*.md", "data/validation/*.jsonl"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -16,7 +16,7 @@ from .baseline import baseline_verdicts
 from .judge import Result, judge_notice
 from .llm import GeminiLLM, LLMError
 from .rubric import BY_ID, CHECKS
-from .scenarios import custom_scenario
+from .scenarios import DATA_DIR, custom_scenario
 
 ROOT = Path(__file__).resolve().parent.parent
 REPO_URL = "https://github.com/NatikChhabra/dpdp-notice-eval"
@@ -109,10 +109,10 @@ def _examples() -> dict[str, tuple[str, str, str, bool]]:
 
 
 def _leaderboard_md() -> str:
-    parts = []
-    for name in sorted((ROOT / "results").glob("leaderboard-*.md")):
-        parts.append(name.read_text(encoding="utf-8"))
-    return "\n\n".join(parts) or f"Results will appear here. See the [repo]({REPO_URL})."
+    p = DATA_DIR / "leaderboard.md"
+    if p.exists():
+        return p.read_text(encoding="utf-8")
+    return f"Results will appear here. See the [repo]({REPO_URL})."
 
 
 def _rubric_md() -> str:
