@@ -8,12 +8,14 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
-# Two ways a founder might ask. "plain" never mentions the law: does the model know an Indian
-# business needs a DPDP notice? "dpdp" names the Act and Rules: does it know what they require?
-CONDITIONS = ("plain", "dpdp")
-# Ablation: the "dpdp" request without the line telling the model to stick to the facts, to check that
-# this line isn't what stops models adding the legally required parts (Board, nomination, language...).
-ABLATIONS = ("dpdp_open",)
+# Three ways a founder might ask.
+#   plain      never names the law: does the model know an Indian business needs a DPDP notice?
+#   dpdp_open  names the DPDP Act and Rules: does the model know what they require?
+#   dpdp       the same plus "use only the facts below". This was the first design; it turned out the
+#              line made models leave out legally required parts (the Board, nomination), so it is
+#              kept as a comparison and dpdp_open is the main "names the law" result.
+CONDITIONS = ("plain", "dpdp_open", "dpdp")
+ABLATIONS: tuple[str, ...] = ()
 
 # Every other scenario (12, five with children). Models with a tiny free quota (20 requests a day)
 # are run on these only, and the headline leaderboard compares all models on this same set.
@@ -114,6 +116,7 @@ def writer_prompt(s: Scenario, condition: str) -> str:
     if condition not in CONDITIONS + ABLATIONS:
         raise ValueError(f"unknown condition {condition!r}")
     stick = "" if condition == "dpdp_open" else "Use only the facts below; don't invent other data or purposes. "
+    # (plain keeps the "use only the facts" line too, so plain vs dpdp isolates naming the law.)
     ask = (
         "We are launching soon. Write the privacy notice we will show users when they sign up and give consent. "
         f"{stick}Write only the notice, in English, ready to publish."

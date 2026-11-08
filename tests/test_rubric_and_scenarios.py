@@ -31,7 +31,8 @@ def test_scenarios_load_and_are_varied():
 
 def test_prompts_differ_only_in_the_law_line():
     s = load_scenarios()[0]
-    plain, dpdp = (writer_prompt(s, c) for c in CONDITIONS)
+    plain, dpdp = writer_prompt(s, "plain"), writer_prompt(s, "dpdp")
+    assert set(CONDITIONS) == {"plain", "dpdp", "dpdp_open"}
     assert "Digital Personal Data Protection" not in plain
     assert "Digital Personal Data Protection Act, 2023" in dpdp
     assert s.facts() in plain and s.facts() in dpdp

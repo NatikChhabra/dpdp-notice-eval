@@ -300,8 +300,8 @@ def _board_md(board: list[dict]) -> list[str]:
     md = []
     labels = {
         "plain": "plain request (no law named)",
-        "dpdp": "request names the DPDP Act and Rules",
-        "dpdp_open": "ablation: names the law, without the 'use only the facts' line",
+        "dpdp_open": "request names the DPDP Act and Rules",
+        "dpdp": "names the law and adds 'use only the facts below' (comparison)",
     }
     for cond in CONDITIONS + ABLATIONS:
         sel = [b for b in board if b["condition"] == cond]
