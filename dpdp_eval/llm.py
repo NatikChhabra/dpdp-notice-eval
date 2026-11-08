@@ -55,7 +55,9 @@ class GeminiLLM:
         self._last_call: dict[str, float] = {}
 
     def _pace(self, model: str) -> None:
-        wait = self._last_call.get(model, 0.0) + self.min_interval - time.monotonic()
+        # Gemma's free tier allows only 16K input tokens a minute, so space its calls out more.
+        interval = max(self.min_interval, 15.0) if _is_gemma(model) and self.min_interval > 0 else self.min_interval
+        wait = self._last_call.get(model, 0.0) + interval - time.monotonic()
         if wait > 0:
             time.sleep(wait)
         self._last_call[model] = time.monotonic()
