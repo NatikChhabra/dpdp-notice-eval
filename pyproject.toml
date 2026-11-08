@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dpdp-notice-eval"
+version = "0.1.0"
+description = "Open eval: can AI models write privacy notices that follow India's DPDP Act?"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["google-genai>=3.0,<4", "pydantic>=2.7,<3", "gradio>=6.31,<7"]
+
+[tool.setuptools]
+packages = ["dpdp_eval"]
+
+[tool.setuptools.package-data]
+dpdp_eval = []
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
