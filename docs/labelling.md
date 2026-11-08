@@ -19,3 +19,17 @@ Rules used where the rubric leaves room for judgement, applied the same way to e
 - **Nomination**: a "nominee name" collected as insurance data is not the s.14 right to nominate.
 - **Children** passes only with both parts: verifiable parent/guardian consent for under-18s, and a
   statement that children are not tracked, behaviourally monitored or targeted with ads (s.9(1), 9(3)).
+- **Withdrawal listed among the rights**: if the notice lists withdrawal as one of the user's rights
+  and says how to exercise those rights ("to exercise your rights, contact our DPO"), withdrawal passes.
+
+## Consistency audit (done after the first judge run, disclosed here)
+
+Re-reading the labels against the rules above, two of the first 16 broke the last rule:
+`gemini-3.5-flash-lite/pathshala/dpdp` and `gemini-3.5-flash-lite/safar/dpdp` had withdrawal marked
+"fail" although withdrawal was listed among the rights and the notice said how to exercise them. Both
+were changed to "pass" (the rows carry an `audit` field). This was noticed while reading the judge's
+disagreements, so it is a known risk of bias; the change helps the judge on one notice and hurts it on
+the other, so the agreement score is unchanged by it.
+
+Four `dpdp_open` notices were added later. They were labelled after the Flash Lite judge had run on
+them, without looking at its verdicts.
