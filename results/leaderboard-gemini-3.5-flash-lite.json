@@ -98,6 +98,54 @@
       }
     },
     {
+      "model": "gemini-3.5-flash-lite",
+      "condition": "dpdp_open",
+      "n": 12,
+      "score": 0.6477,
+      "ci95": [
+        0.5932,
+        0.7015
+      ],
+      "fully_compliant": 0.0,
+      "per_check": {
+        "data_itemised": 1.0,
+        "purpose_specific": 1.0,
+        "withdraw_consent": 0.5833,
+        "rights": 0.75,
+        "nomination": 0.0833,
+        "grievance": 1.0,
+        "board_complaint": 0.1667,
+        "contact": 1.0,
+        "language": 0.0,
+        "no_foreign_law": 1.0,
+        "children": 0.4
+      }
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "condition": "dpdp_open",
+      "n": 12,
+      "score": 0.5993,
+      "ci95": [
+        0.5447,
+        0.6493
+      ],
+      "fully_compliant": 0.0,
+      "per_check": {
+        "data_itemised": 1.0,
+        "purpose_specific": 1.0,
+        "withdraw_consent": 0.5833,
+        "rights": 0.6667,
+        "nomination": 0.0833,
+        "grievance": 0.9167,
+        "board_complaint": 0.0,
+        "contact": 1.0,
+        "language": 0.0,
+        "no_foreign_law": 1.0,
+        "children": 0.0
+      }
+    },
+    {
       "model": "gemini-3.1-flash-lite",
       "condition": "plain",
       "n": 12,
