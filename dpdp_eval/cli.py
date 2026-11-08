@@ -21,7 +21,7 @@ from pathlib import Path
 
 from . import synth
 from .baseline import baseline_verdicts
-from .judge import Result, judge_notice
+from .judge import Result, evidence_found, judge_notice, needs_quote
 from .llm import GeminiLLM, LLMError, QuotaExhausted
 from .metrics import bootstrap_ci, md_table, per_check
 from .rubric import CHECKS
@@ -92,7 +92,7 @@ def summarise_validation(judge: str, split: str, out_dir: Path = RESULTS / "judg
                 errors.append(
                     {"id": p["id"], "check": cid, "truth": lab, "judge": got, "variant": truth[p["id"]]["picks"][cid]}
                 )
-        n_pass += sum(v == "pass" for v in p["verdicts"].values())
+        n_pass += sum(needs_quote(c, v) for c, v in p["verdicts"].items())
         unverified += len(p.get("unverified", []))
     agg = per_check(rows)
     order = [c.id for c in CHECKS] + ["ALL"]
@@ -113,7 +113,7 @@ def summarise_validation(judge: str, split: str, out_dir: Path = RESULTS / "judg
     }
     (out_dir / f"{split}-{_safe(judge)}.md").write_text(
         f"# Judge validation: {judge} on {split} ({len(preds)}/{len(truth)} notices)\n\n{table}\n\n"
-        f"Passes whose quoted evidence was not found in the notice: {unverified} of {n_pass}.\n\n"
+        f'Passes whose quoted evidence was not found in the notice: {unverified} of {n_pass} (no quote is needed for a "no foreign law" pass).\n\n'
         "## Disagreements\n\n"
         + md_table(
             ["notice", "check", "truth", "judge", "variant"],
@@ -176,6 +176,35 @@ def validate_real(judge: str, llm=None, out_dir: Path | None = None) -> dict:
         "all": vars(agg["ALL"]) if "ALL" in agg else None,
         "per_check": {k: vars(v) for k, v in agg.items()},
     }
+
+
+def recheck_quotes(results: Path = RESULTS) -> dict[str, tuple[int, int]]:
+    """Re-run the quote check on every stored judgment (no API calls), after the check itself changes.
+
+    Returns {file: (unverified passes, passes that need a quote)}.
+    """
+    synth_notices = {r["id"]: r["notice"] for split in ("dev", "test") for r in synth.load(split)}
+    gens = {(g["model"], g["scenario"], g["condition"]): g["notice"] for g in load_generations()}
+    out = {}
+    for path in sorted([*results.glob("judgments-*.jsonl"), *(results / "judge_validation").glob("*.jsonl")]):
+        if "baseline" in path.name:
+            continue
+        rows = _read_jsonl(path)
+        bad = need = 0
+        for r in rows:
+            notice = synth_notices.get(r.get("id")) or gens.get((r.get("model"), r.get("scenario"), r.get("condition")))
+            if notice is None:
+                continue
+            r["unverified"] = [
+                c
+                for c, v in r["verdicts"].items()
+                if needs_quote(c, v) and not evidence_found(r["evidence"].get(c, ""), notice)
+            ]
+            bad += len(r["unverified"])
+            need += sum(needs_quote(c, v) for c, v in r["verdicts"].items())
+        path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+        out[str(path.relative_to(results))] = (bad, need)
+    return out
 
 
 # ---------- generation + judging ----------
@@ -374,6 +403,7 @@ def main(argv: list[str] | None = None) -> None:
     vr.add_argument("--judge", required=True)
     r = sub.add_parser("report")
     r.add_argument("--judge", required=True)
+    sub.add_parser("recheck-quotes", help="re-run the quote check on stored judgments (no API calls)")
     sp = sub.add_parser("smoke-space", help="call the live Hugging Face demo with an example notice")
     sp.add_argument("--space", default="Natik22may/dpdp-notice-check")
     a = ap.parse_args(argv)
@@ -397,6 +427,9 @@ def main(argv: list[str] | None = None) -> None:
         print(out)
         if "requirements met" not in out:
             sys.exit("demo did not return a result")
+    elif a.cmd == "recheck-quotes":
+        for f, (bad, need) in recheck_quotes().items():
+            print(f"{f}: {bad} of {need} quoted passes not found in the notice")
     elif a.cmd == "validate-real":
         print(json.dumps(validate_real(a.judge)["all"], indent=2))
     elif a.cmd == "generate":

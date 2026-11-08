@@ -14,7 +14,7 @@
 | no_foreign_law | 1 | 1.000 | 1.000 | 1.000 | 1.000 |
 | ALL | 10 | 1.000 | 1.000 | 1.000 | 1.000 |
 
-Passes whose quoted evidence was not found in the notice: 1 of 10.
+Passes whose quoted evidence was not found in the notice: 0 of 9 (no quote is needed for a "no foreign law" pass).
 
 ## Disagreements
 

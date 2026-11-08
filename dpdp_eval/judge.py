@@ -73,14 +73,34 @@ def _norm(t: str) -> str:
     return re.sub(r"\s+", " ", t).strip()
 
 
+# A pass on these checks means "nothing wrong was found", so there is no line to quote.
+ABSENCE_CHECKS = frozenset({"no_foreign_law"})
+
+
 def evidence_found(evidence: str, notice: str) -> bool:
-    """Is the quoted evidence really in the notice? Allows '...' gaps and markdown/whitespace differences."""
-    ev = _norm(evidence).strip(" .\"'")
+    """Is the quoted evidence really in the notice?
+
+    Allows '...' gaps and markdown/whitespace differences. Judges often quote a bulleted list as one
+    comma-separated line, so if the whole quote isn't found, every comma/semicolon-separated piece
+    must be found instead (also across line breaks and sentence breaks).
+    """
+    raw = evidence or ""
+    ev = _norm(raw).strip(" .\"'")
     if not ev:
         return False
     body = _norm(notice)
-    parts = [p.strip(" .\"'") for p in re.split(r"\.\.\.|…", ev)]
-    return all(p in body for p in parts if p)
+
+    def found(text: str, sep: str) -> bool:
+        parts = [re.sub(r"^(and|or) ", "", p.strip(" .,;:\"'")) for p in re.split(sep, text)]
+        return all(p in body for p in parts if p)
+
+    # Split the raw quote (before newlines are collapsed) so list items stay separate.
+    pieces = r"\[\.\.\.\]|\.\.\.|…|[,;:\n*]|\.\s"
+    return found(ev, r"\.\.\.|…|\[\.\.\.\]") or found(_norm(raw.replace("\n", " ; ")), pieces)
+
+
+def needs_quote(check_id: str, verdict: str) -> bool:
+    return verdict == "pass" and check_id not in ABSENCE_CHECKS
 
 
 @dataclass
@@ -123,7 +143,7 @@ def parse_judgement(raw: str, s: Scenario, notice: str) -> Result:
         res.verdicts[cid] = v.verdict
         res.evidence[cid] = v.evidence
         res.reasoning[cid] = v.reasoning
-        if v.verdict == "pass" and not evidence_found(v.evidence, notice):
+        if needs_quote(cid, v.verdict) and not evidence_found(v.evidence, notice):
             res.unverified.append(cid)
     return res
 
