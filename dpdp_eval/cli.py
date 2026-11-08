@@ -252,8 +252,22 @@ def judge_all(judge: str, llm=None, gen_dir: Path | None = None) -> Path:
     return out
 
 
-def report(judge: str) -> dict:
-    rows = _read_jsonl(RESULTS / f"judgments-{_safe(judge)}.jsonl")
+SHORT = {
+    "data_itemised": "data",
+    "purpose_specific": "purpose",
+    "withdraw_consent": "withdraw",
+    "rights": "rights",
+    "nomination": "nominate",
+    "grievance": "grievance",
+    "board_complaint": "Board",
+    "contact": "contact",
+    "language": "language",
+    "no_foreign_law": "no GDPR",
+    "children": "children",
+}
+
+
+def _board(rows: list[dict]) -> list[dict]:
     by: dict[tuple[str, str], dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     full: dict[tuple[str, str], list[int]] = defaultdict(list)
     check_rate: dict[tuple[str, str], dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
@@ -278,38 +292,61 @@ def report(judge: str) -> dict:
             }
         )
     board.sort(key=lambda b: (b["condition"], -b["score"]))
-    out = {"judge": judge, "rows": board}
-    (RESULTS / f"leaderboard-{_safe(judge)}.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    return board
+
+
+def _board_md(board: list[dict]) -> list[str]:
     ids = [c.id for c in CHECKS]
-    md = [f"# Leaderboard (judge: {judge})\n"]
+    md = []
     for cond in CONDITIONS:
         sel = [b for b in board if b["condition"] == cond]
         if not sel:
             continue
-        md.append(f"\n## Prompt: {cond}\n")
+        label = "plain request (no law named)" if cond == "plain" else "request names the DPDP Act and Rules"
+        md.append(f"\n**Prompt: {label}**\n")
         md.append(
             md_table(
-                ["model", "n", "score", "95% CI", "fully compliant"],
+                ["model", "notices", "score", "95% CI", "fully compliant", *[SHORT[i] for i in ids]],
                 [
                     [
-                        b["model"],
+                        f"`{b['model']}`",
                         str(b["n"]),
-                        f"{b['score']:.0%}",
+                        f"**{b['score']:.0%}**",
                         f"{b['ci95'][0]:.0%}–{b['ci95'][1]:.0%}",
                         f"{b['fully_compliant']:.0%}",
+                        *[f"{b['per_check'][i]:.0%}" if i in b["per_check"] else "–" for i in ids],
                     ]
                     for b in sel
                 ],
             )
         )
-        md.append("\nPass rate per check:\n")
-        md.append(
-            md_table(
-                ["model", *ids],
-                [[b["model"], *[f"{b['per_check'].get(i, float('nan')):.0%}" for i in ids]] for b in sel],
-            )
-        )
-    (RESULTS / f"leaderboard-{_safe(judge)}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    return md
+
+
+def report(judge: str) -> dict:
+    """Leaderboard: all models on the 12 core scenarios, plus all 24 for models that have them."""
+    rows = _read_jsonl(RESULTS / f"judgments-{_safe(judge)}.jsonl")
+    core = _board([r for r in rows if r["scenario"] in CORE_IDS])
+    counts: dict[tuple[str, str], int] = defaultdict(int)
+    for r in rows:
+        counts[(r["model"], r["condition"])] += 1
+    n_all = len(load_scenarios())
+    full = _board([r for r in rows if counts[(r["model"], r["condition"])] == n_all])
+    out = {"judge": judge, "core": core, "all": full}
+    (RESULTS / f"leaderboard-{_safe(judge)}.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    md = [
+        f"## Leaderboard (judge: `{judge}`)\n",
+        "Score = share of applicable checks passed (10, or 11 if the business has users under 18). "
+        "95% CI from a bootstrap over businesses. Fully compliant = passes every check. "
+        "Columns on the right are pass rates per check.\n",
+        f"### Core set: {len(CORE_IDS)} businesses, every model",
+        *_board_md(core),
+    ]
+    if full:
+        md += [f"\n### Full set: {n_all} businesses (models with enough free quota)", *_board_md(full)]
+    text = "\n".join(md) + "\n"
+    (RESULTS / f"leaderboard-{_safe(judge)}.md").write_text(text, encoding="utf-8")
+    (DATA_DIR / "leaderboard.md").write_text(text, encoding="utf-8")
     return out
 
 
@@ -357,4 +394,4 @@ def main(argv: list[str] | None = None) -> None:
     elif a.cmd == "judge":
         judge_all(a.judge)
     elif a.cmd == "report":
-        print(json.dumps(report(a.judge)["rows"], indent=1))
+        print(json.dumps(report(a.judge)["core"], indent=1))

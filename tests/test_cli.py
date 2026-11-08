@@ -25,12 +25,15 @@ def test_generate_judge_report_resume(tmp_path, monkeypatch):
     out = cli.judge_all("j", llm=FakeLLM(fn=judge_fn), gen_dir=gen)
     rows = [json.loads(x) for x in out.read_text().splitlines()]
     assert len(rows) == 48
+    monkeypatch.setattr(cli, "DATA_DIR", tmp_path)
     rep = cli.report("j")
-    assert {r["model"] for r in rep["rows"]} == {"m1", "m2"}
-    r = rep["rows"][0]
+    assert {r["model"] for r in rep["core"]} == {"m1", "m2"}
+    assert rep["core"][0]["n"] == 12 and rep["all"][0]["n"] == 24
+    r = rep["core"][0]
     assert r["ci95"][0] <= r["score"] <= r["ci95"][1]
     assert r["per_check"]["nomination"] == 1.0 and r["per_check"]["grievance"] == 0.0
     assert (tmp_path / "leaderboard-j.md").exists()
+    assert "Core set" in (tmp_path / "leaderboard.md").read_text()
 
 
 def test_validate_judge_with_baseline(tmp_path):
