@@ -1,0 +1,21 @@
+# How the real notices were hand-labelled
+
+`data/validation/real_labels.jsonl` holds verdicts for real notices written by the models under test.
+They were labelled **before any LLM judge saw these notices** (check the commit times), by reading
+each notice against the rubric in `dpdp_eval/rubric.py`. The labeller was Claude, working under
+Natik's direction; Natik spot-checks a sample (see README).
+
+Rules used where the rubric leaves room for judgement, applied the same way to every notice:
+
+- **Withdrawal** passes only if the notice says *how* to withdraw (a setting, button, link or
+  contact given for withdrawal). "You may withdraw consent at any time" next to a general
+  "manage your settings under Settings" line is not enough: the Rules ask for a description of
+  the means to withdraw (r.3(c)(i)).
+- **Rights** passes only if access (or a summary), correction and erasure are all named **and** the
+  notice says how to make the request (e.g. "to exercise your rights, contact our DPO at ...").
+- **Grievance**: "contact our officer with complaints" plus a reply period of 90 days or less passes.
+- **Contact**: an email for a Grievance Officer who takes privacy questions counts as "a person who
+  can answer questions" (Rules r.9).
+- **Nomination**: a "nominee name" collected as insurance data is not the s.14 right to nominate.
+- **Children** passes only with both parts: verifiable parent/guardian consent for under-18s, and a
+  statement that children are not tracked, behaviourally monitored or targeted with ads (s.9(1), 9(3)).
