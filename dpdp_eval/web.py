@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REPO_URL = "https://github.com/NatikChhabra/dpdp-notice-eval"
 JUDGE_MODELS = [
     m.strip()
-    for m in os.environ.get("DPDP_JUDGE_MODELS", "gemma-4-31b-it,gemini-3.5-flash-lite").split(",")
+    for m in os.environ.get("DPDP_JUDGE_MODELS", "gemini-3.5-flash-lite,gemma-4-31b-it").split(",")
     if m.strip()
 ]
 AI_ON = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
