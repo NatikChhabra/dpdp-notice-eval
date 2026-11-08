@@ -125,6 +125,59 @@ def summarise_validation(judge: str, split: str, out_dir: Path = RESULTS / "judg
     return summary
 
 
+def validate_real(judge: str, llm=None, out_dir: Path | None = None) -> dict:
+    """Agreement with hand labels on real model notices. Reuses (and adds to) the judge's judgments file."""
+    out_dir = out_dir or RESULTS / "judge_validation"
+    scen = {s.id: s for s in load_scenarios()}
+    labels = _read_jsonl(ROOT / "data" / "validation" / "real_labels.jsonl")
+    gens = {(g["model"], g["scenario"], g["condition"]): g for g in load_generations()}
+    jpath = RESULTS / f"judgments-{_safe(judge)}.jsonl"
+    judged = {(r["model"], r["scenario"], r["condition"]): r for r in _read_jsonl(jpath)}
+    rows = []
+    for lab in labels:
+        key = (lab["model"], lab["scenario"], lab["condition"])
+        g = gens[key]
+        if key not in judged:
+            s = scen[g["scenario"]]
+            if judge == "baseline":
+                res = Result(baseline_verdicts(s, g["notice"]))
+            else:
+                llm = llm or GeminiLLM()
+                try:
+                    res = judge_notice(llm, judge, s, g["notice"])
+                except QuotaExhausted as e:
+                    print(f"stopping: {e}", file=sys.stderr)
+                    break
+                except LLMError as e:
+                    print(f"skip: {e}", file=sys.stderr)
+                    continue
+            judged[key] = {"model": key[0], "scenario": key[1], "condition": key[2], **res.to_dict()}
+            if judge != "baseline":
+                _append(jpath, judged[key])
+        for cid, t in lab["labels"].items():
+            rows.append((cid, t, judged[key]["verdicts"][cid], key))
+    agg = per_check([(c, t, p) for c, t, p, _ in rows])
+    order = [c.id for c in CHECKS] + ["ALL"]
+    errors = [[f"{k[0]}/{k[1]}/{k[2]}", c, t, p] for c, t, p, k in rows if t != p]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / f"real-{_safe(judge)}.md").write_text(
+        f"# Judge validation on real notices: {judge} ({len({r[3] for r in rows})} notices, hand-labelled)\n\n"
+        + md_table(
+            ["check", "n", "accuracy", "kappa", "fail precision", "fail recall"],
+            [[k, *agg[k].row()] for k in order if k in agg],
+        )
+        + "\n\n## Disagreements\n\n"
+        + md_table(["notice", "check", "label", "judge"], errors)
+        + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "judge": judge,
+        "all": vars(agg["ALL"]) if "ALL" in agg else None,
+        "per_check": {k: vars(v) for k, v in agg.items()},
+    }
+
+
 # ---------- generation + judging ----------
 
 
@@ -275,6 +328,8 @@ def main(argv: list[str] | None = None) -> None:
     g.add_argument("--max-calls", type=int, default=None, help="cap on calls per model in this run")
     j = sub.add_parser("judge")
     j.add_argument("--judge", required=True)
+    vr = sub.add_parser("validate-real")
+    vr.add_argument("--judge", required=True)
     r = sub.add_parser("report")
     r.add_argument("--judge", required=True)
     a = ap.parse_args(argv)
@@ -290,6 +345,8 @@ def main(argv: list[str] | None = None) -> None:
                 {k: s[k] for k in ("judge", "split", "notices", "of", "all", "unverified_pass_quotes")}, indent=2
             )
         )
+    elif a.cmd == "validate-real":
+        print(json.dumps(validate_real(a.judge)["all"], indent=2))
     elif a.cmd == "generate":
         generate(
             [m.strip() for m in a.models.split(",") if m.strip()],
