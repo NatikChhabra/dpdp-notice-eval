@@ -51,3 +51,23 @@ def test_generate_core_and_max_calls(tmp_path):
     assert len(llm.calls) == 12
     rows = cli.load_generations(tmp_path)
     assert {r["scenario"] for r in rows} == set(cli.CORE_IDS)
+
+
+def test_partial_models_are_marked_and_listed_last():
+    from dpdp_eval.rubric import CHECKS
+
+    def row(model, n, score):
+        per = {c.id: 0.5 for c in CHECKS}
+        return {
+            "model": model,
+            "condition": "plain",
+            "n": n,
+            "score": score,
+            "ci95": [score, score],
+            "fully_compliant": 0.0,
+            "per_check": per,
+        }
+
+    md = "\n".join(cli._board_md([row("big", 5, 0.9), row("small", 12, 0.5)], expected_n=12))
+    assert "`big` (partial: 5 of 12)" in md
+    assert md.index("`small`") < md.index("`big`")
