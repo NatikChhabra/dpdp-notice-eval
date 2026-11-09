@@ -32,7 +32,8 @@ INK, MUTED, GRID = "#1f1f1e", "#6b6a63", "#e6e5df"
 
 
 def mean_per_check(rows, condition):
-    rows = [r for r in rows if r["condition"] == condition]
+    # Only models with the full core set, so a partly run model doesn't skew the average.
+    rows = [r for r in rows if r["condition"] == condition and r["n"] >= 12]
     return {k: sum(r["per_check"][k] for r in rows) / len(rows) for k in LABELS}
 
 
