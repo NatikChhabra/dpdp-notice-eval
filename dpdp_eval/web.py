@@ -152,9 +152,10 @@ WAITING = """### Your report shows up here
 For each of the 11 checks you get a pass or a fail, the line from your notice the judge relied on, and what the
 law asks for when something is missing.
 
-**What the eval found:** of 239 notices written by four AI models, none passed every check. The ones most often
-missed are how to withdraw consent, how to complain to the Data Protection Board, the right to nominate someone,
-and offering the notice in an Indian language. See the *Model leaderboard* tab.
+**What the eval found:** of 239 notices written by four small AI models, none passed every check. The ones most
+often missed are how to withdraw consent, how to complain to the Data Protection Board, the right to nominate
+someone, and offering the notice in an Indian language. A larger model (Gemini 3.6 Flash) does much better when
+told the law, in early results. See the *Model leaderboard* tab.
 
 <small>No notice to hand? Pick one under *Or try an example*.</small>"""
 

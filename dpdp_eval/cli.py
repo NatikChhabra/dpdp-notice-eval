@@ -324,8 +324,16 @@ def _board(rows: list[dict]) -> list[dict]:
     return board
 
 
-def _board_md(board: list[dict]) -> list[str]:
+def _board_md(board: list[dict], expected_n: int | None = None) -> list[str]:
+    """Markdown tables, one per prompt. Models with fewer than `expected_n` notices are marked and listed last."""
     ids = [c.id for c in CHECKS]
+
+    def partial(b: dict) -> bool:
+        return expected_n is not None and b["n"] < expected_n
+
+    def name(b: dict) -> str:
+        return f"`{b['model']}` (partial: {b['n']} of {expected_n})" if partial(b) else f"`{b['model']}`"
+
     md = []
     labels = {
         "plain": "plain request (no law named)",
@@ -333,7 +341,7 @@ def _board_md(board: list[dict]) -> list[str]:
         "dpdp": "names the law and adds 'use only the facts below' (comparison)",
     }
     for cond in CONDITIONS + ABLATIONS:
-        sel = [b for b in board if b["condition"] == cond]
+        sel = sorted((b for b in board if b["condition"] == cond), key=lambda b: (partial(b), -b["score"]))
         if not sel:
             continue
         label = labels[cond]
@@ -343,7 +351,7 @@ def _board_md(board: list[dict]) -> list[str]:
                 ["model", "notices", "score", "95% CI", "fully compliant", *[SHORT[i] for i in ids]],
                 [
                     [
-                        f"`{b['model']}`",
+                        name(b),
                         str(b["n"]),
                         f"**{b['score']:.0%}**",
                         f"{b['ci95'][0]:.0%}–{b['ci95'][1]:.0%}",
@@ -374,7 +382,7 @@ def report(judge: str) -> dict:
         "95% CI from a bootstrap over businesses. Fully compliant = passes every check. "
         "Columns on the right are pass rates per check.\n",
         f"### Core set: {len(CORE_IDS)} businesses, every model",
-        *_board_md(core),
+        *_board_md(core, expected_n=len(CORE_IDS)),
     ]
     if full:
         md += [f"\n### Full set: {n_all} businesses (models with enough free quota)", *_board_md(full)]
