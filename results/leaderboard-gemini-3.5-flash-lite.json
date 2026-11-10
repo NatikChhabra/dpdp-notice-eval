@@ -100,17 +100,17 @@
     {
       "model": "gemini-3.6-flash",
       "condition": "dpdp_open",
-      "n": 5,
-      "score": 0.9236,
+      "n": 10,
+      "score": 0.9255,
       "ci95": [
-        0.9018,
-        0.9618
+        0.8809,
+        0.9636
       ],
-      "fully_compliant": 0.2,
+      "fully_compliant": 0.4,
       "per_check": {
         "data_itemised": 1.0,
         "purpose_specific": 1.0,
-        "withdraw_consent": 0.8,
+        "withdraw_consent": 0.9,
         "rights": 1.0,
         "nomination": 0.8,
         "grievance": 1.0,
@@ -118,7 +118,7 @@
         "contact": 1.0,
         "language": 0.6,
         "no_foreign_law": 1.0,
-        "children": 1.0
+        "children": 0.75
       }
     },
     {
@@ -218,30 +218,6 @@
       }
     },
     {
-      "model": "gemini-3.6-flash",
-      "condition": "plain",
-      "n": 5,
-      "score": 0.4818,
-      "ci95": [
-        0.4636,
-        0.5
-      ],
-      "fully_compliant": 0.0,
-      "per_check": {
-        "data_itemised": 1.0,
-        "purpose_specific": 1.0,
-        "withdraw_consent": 0.0,
-        "rights": 0.0,
-        "nomination": 0.0,
-        "grievance": 1.0,
-        "board_complaint": 0.0,
-        "contact": 1.0,
-        "language": 0.0,
-        "no_foreign_law": 1.0,
-        "children": 0.0
-      }
-    },
-    {
       "model": "gemini-3.1-flash-lite",
       "condition": "plain",
       "n": 12,
@@ -258,6 +234,30 @@
         "rights": 0.0,
         "nomination": 0.0,
         "grievance": 0.9167,
+        "board_complaint": 0.0,
+        "contact": 1.0,
+        "language": 0.0,
+        "no_foreign_law": 1.0,
+        "children": 0.0
+      }
+    },
+    {
+      "model": "gemini-3.6-flash",
+      "condition": "plain",
+      "n": 10,
+      "score": 0.4718,
+      "ci95": [
+        0.4518,
+        0.4909
+      ],
+      "fully_compliant": 0.0,
+      "per_check": {
+        "data_itemised": 1.0,
+        "purpose_specific": 0.9,
+        "withdraw_consent": 0.0,
+        "rights": 0.0,
+        "nomination": 0.0,
+        "grievance": 1.0,
         "board_complaint": 0.0,
         "contact": 1.0,
         "language": 0.0,

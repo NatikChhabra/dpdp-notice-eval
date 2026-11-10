@@ -25,11 +25,11 @@ YC's Fall 2026 Requests for Startups asks for [**AI-Native Compliance Infrastruc
 
 Across **239 notices** from the four small models (Gemini 3.1 and 3.5 Flash Lite, Gemma 4 26B and 31B), **not one passed every check**. The best met 9 of 11.
 
-**Update, 9 Nov 2026: a larger model does much better.** `gemini-3.6-flash` (not a Lite model) has so far written notices for 5 of the 12 core businesses. With the law named it scored **92%**, and one of its notices, for a bus-booking app, is the first to pass every check. Its notices name the Board, the right to nominate and the Eighth Schedule languages, which the small models almost never did. Without the law named it scored 48%, the same as the others. Five businesses is a small sample and the judge is from the same model family, so this is an early result; the free API allows 20 calls a day, so the rest of the core set is being added over the next few days.
+**Update, 10 Nov 2026: a larger model does much better.** `gemini-3.6-flash` (not a Lite model) has now written notices for 10 of the 12 core businesses. With the law named it scored **93%** (95% CI 88–96%), and **4 of its 10 notices pass every check**, the first in the eval to do so (a bus-booking app, an insurance broker, a home-food delivery app and a public library). Its notices name the Board, the right to nominate and the Eighth Schedule languages, which the small models almost never did. Without the law named it scored 47%, the same as the others, so the size of the model matters only once it is told which law applies. The judge is from the same model family, so treat this with some care. The last 2 businesses come next; `gemini-3.8-flash` has been too busy on the free API (503 and 504 errors) to add yet.
 
 <p align="center"><img src="docs/checks-chart.png" width="760" alt="Dot chart of the share of notices passing each of the 11 checks. With a plain request, withdrawal, rights, the Board, nomination, language and children are all near 0%. Naming the law lifts rights to 71% and withdrawal to 42%, children to 20%, the Board to 6%, nomination to 4%, and language stays at 0%."/></p>
 
-- **Without being told about the law, every model scored 45–48%** (the small four, and 3.6 Flash so far). The notices list the data, the purposes and a contact, and that is about it: almost none say how to withdraw consent or how to use the rights to access, correct and erase.
+- **Without being told about the law, every model scored 45–48%** (the small four, and 3.6 Flash). The notices list the data, the purposes and a contact, and that is about it: almost none say how to withdraw consent or how to use the rights to access, correct and erase.
 - **Naming the DPDP Act and Rules helps the small models, but only up to a point: 56–65%.** Withdrawal and the rights improve a lot for three of the four. Three duties stay almost untouched: the option to read the notice in an Indian language (**0%** for all four), the right to nominate someone (**0–8%**), and how to complain to the Data Protection Board (**0–17%**). With children's data, the most a model managed was 40%.
 - **One line in my own prompt was hiding this.** My first "names the law" prompt also said *"use only the facts below; don't invent other data or purposes"*. Grepping the outputs suggested that models read it as "leave out anything not in the facts", including the Board and nomination. With that line, scores fall back to 47–50%, the same as not naming the law at all. So the main result uses the prompt without it, and the old one is kept as a comparison.
 
@@ -68,7 +68,7 @@ An LLM judge is only useful if it agrees with the right answer. So before judgin
 
 1. **Synthetic notices with known answers** (`dpdp_eval/data/validation/`). Notices are built from sections. For each check we pick a compliant section or a realistic mistake: a vague data list, a 120-day reply period, "the relevant supervisory authority", withdrawal only by registered post, children defined as under 13, personalised ads for children, and so on. The correct verdicts follow from the choices. The set is split by business: **dev** (4 businesses, 20 notices) was used to pick the judge, **test** (8 businesses, 40 notices) was held out.
 2. **Real notices, hand-labelled** (`dpdp_eval/data/validation/real_labels.jsonl`). Real model notices were labelled by hand. Most were labelled before any judge saw them; the last 7 were labelled after a judge had run, without looking at its verdicts (see the commit history and [the labelling rules](docs/labelling.md), which also disclose two corrections).
-3. **Quote checking.** For every check the judge must quote the line it relied on. The code then confirms the quote exists in the notice, which catches a judge inventing support for a "pass". In the main run, 2 of the 1,079 quoted passes were not found word for word in their notice (paraphrases). An early version of this check wrongly flagged bulleted lists quoted as one line; it was fixed and re-run on the stored verdicts with `python -m dpdp_eval recheck-quotes`.
+3. **Quote checking.** For every check the judge must quote the line it relied on. The code then confirms the quote exists in the notice, which catches a judge inventing support for a "pass". In the main run, 2 of the 1,141 quoted passes were not found word for word in their notice (paraphrases). An early version of this check wrongly flagged bulleted lists quoted as one line; it was fixed and re-run on the stored verdicts with `python -m dpdp_eval recheck-quotes`.
 
 | Judge | Synthetic dev (20 notices) | Synthetic held-out test (40 notices) | Real notices, hand-labelled (23) |
 |---|---|---|---|
@@ -86,7 +86,7 @@ Flash Lite was chosen because it was the most accurate judge that finished every
 
 ## Leaderboard
 
-**Core set: 12 businesses, every model** (`gemini-3.6-flash` has 5 so far and is being filled in). Score = share of applicable checks passed. 95% CI from a bootstrap over businesses. Columns on the right are pass rates per check.
+**Core set: 12 businesses, every model** (`gemini-3.6-flash` has 10 so far and is being filled in). Score = share of applicable checks passed. 95% CI from a bootstrap over businesses. Columns on the right are pass rates per check.
 
 **Prompt: plain request (no law named)**
 
@@ -96,7 +96,7 @@ Flash Lite was chosen because it was the most accurate judge that finished every
 | `gemini-3.5-flash-lite` | 12 | **47%** | 44%–49% | 0% | 100% | 100% | 0% | 0% | 0% | 83% | 0% | 100% | 0% | 100% | 0% |
 | `gemma-4-26b-a4b-it` | 12 | **46%** | 43%–48% | 0% | 100% | 92% | 0% | 0% | 0% | 83% | 0% | 100% | 0% | 100% | 0% |
 | `gemma-4-31b-it` | 12 | **45%** | 42%–48% | 0% | 100% | 92% | 0% | 0% | 0% | 75% | 0% | 100% | 0% | 100% | 0% |
-| `gemini-3.6-flash` (partial: 5 of 12) | 5 | **48%** | 46%–50% | 0% | 100% | 100% | 0% | 0% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.6-flash` (partial: 10 of 12) | 10 | **47%** | 45%–49% | 0% | 100% | 90% | 0% | 0% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
 
 **Prompt: request names the DPDP Act and Rules**
 
@@ -106,7 +106,7 @@ Flash Lite was chosen because it was the most accurate judge that finished every
 | `gemma-4-31b-it` | 12 | **61%** | 58%–63% | 0% | 100% | 100% | 50% | 83% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
 | `gemini-3.1-flash-lite` | 12 | **60%** | 54%–65% | 0% | 100% | 100% | 58% | 67% | 8% | 92% | 0% | 100% | 0% | 100% | 0% |
 | `gemma-4-26b-a4b-it` | 12 | **56%** | 52%–60% | 0% | 100% | 100% | 0% | 58% | 0% | 100% | 8% | 100% | 0% | 100% | 40% |
-| `gemini-3.6-flash` (partial: 5 of 12) | 5 | **92%** | 90%–96% | 20% | 100% | 100% | 80% | 100% | 80% | 100% | 100% | 100% | 60% | 100% | 100% |
+| `gemini-3.6-flash` (partial: 10 of 12) | 10 | **93%** | 88%–96% | 40% | 100% | 100% | 90% | 100% | 80% | 100% | 100% | 100% | 60% | 100% | 75% |
 
 **Prompt: names the law and adds 'use only the facts below' (comparison)**
 
