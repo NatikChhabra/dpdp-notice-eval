@@ -9,20 +9,21 @@ Score = share of applicable checks passed (10, or 11 if the business has users u
 | model | notices | score | 95% CI | fully compliant | data | purpose | withdraw | rights | nominate | grievance | Board | contact | language | no GDPR | children |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `gemini-3.1-flash-lite` | 12 | **48%** | 46%–50% | 0% | 100% | 100% | 8% | 0% | 0% | 92% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.6-flash` | 12 | **47%** | 46%–49% | 0% | 100% | 92% | 0% | 0% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
 | `gemini-3.5-flash-lite` | 12 | **47%** | 44%–49% | 0% | 100% | 100% | 0% | 0% | 0% | 83% | 0% | 100% | 0% | 100% | 0% |
 | `gemma-4-26b-a4b-it` | 12 | **46%** | 43%–48% | 0% | 100% | 92% | 0% | 0% | 0% | 83% | 0% | 100% | 0% | 100% | 0% |
 | `gemma-4-31b-it` | 12 | **45%** | 42%–48% | 0% | 100% | 92% | 0% | 0% | 0% | 75% | 0% | 100% | 0% | 100% | 0% |
-| `gemini-3.6-flash` (partial: 10 of 12) | 10 | **47%** | 45%–49% | 0% | 100% | 90% | 0% | 0% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
+| `gemini-3.8-flash` (partial: 1 of 12) | 1 | **40%** | 40%–40% | 0% | 100% | 100% | 0% | 0% | 0% | 0% | 0% | 100% | 0% | 100% | – |
 
 **Prompt: request names the DPDP Act and Rules**
 
 | model | notices | score | 95% CI | fully compliant | data | purpose | withdraw | rights | nominate | grievance | Board | contact | language | no GDPR | children |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `gemini-3.6-flash` | 12 | **91%** | 84%–96% | 42% | 100% | 100% | 83% | 100% | 75% | 100% | 100% | 100% | 58% | 100% | 60% |
 | `gemini-3.5-flash-lite` | 12 | **65%** | 59%–70% | 0% | 100% | 100% | 58% | 75% | 8% | 100% | 17% | 100% | 0% | 100% | 40% |
 | `gemma-4-31b-it` | 12 | **61%** | 58%–63% | 0% | 100% | 100% | 50% | 83% | 0% | 100% | 0% | 100% | 0% | 100% | 0% |
 | `gemini-3.1-flash-lite` | 12 | **60%** | 54%–65% | 0% | 100% | 100% | 58% | 67% | 8% | 92% | 0% | 100% | 0% | 100% | 0% |
 | `gemma-4-26b-a4b-it` | 12 | **56%** | 52%–60% | 0% | 100% | 100% | 0% | 58% | 0% | 100% | 8% | 100% | 0% | 100% | 40% |
-| `gemini-3.6-flash` (partial: 10 of 12) | 10 | **93%** | 88%–96% | 40% | 100% | 100% | 90% | 100% | 80% | 100% | 100% | 100% | 60% | 100% | 75% |
 
 **Prompt: names the law and adds 'use only the facts below' (comparison)**
 

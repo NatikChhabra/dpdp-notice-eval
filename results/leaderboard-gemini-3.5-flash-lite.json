@@ -100,25 +100,25 @@
     {
       "model": "gemini-3.6-flash",
       "condition": "dpdp_open",
-      "n": 10,
-      "score": 0.9255,
+      "n": 12,
+      "score": 0.9076,
       "ci95": [
-        0.8809,
-        0.9636
+        0.8402,
+        0.9614
       ],
-      "fully_compliant": 0.4,
+      "fully_compliant": 0.4167,
       "per_check": {
         "data_itemised": 1.0,
         "purpose_specific": 1.0,
-        "withdraw_consent": 0.9,
+        "withdraw_consent": 0.8333,
         "rights": 1.0,
-        "nomination": 0.8,
+        "nomination": 0.75,
         "grievance": 1.0,
         "board_complaint": 1.0,
         "contact": 1.0,
-        "language": 0.6,
+        "language": 0.5833,
         "no_foreign_law": 1.0,
-        "children": 0.75
+        "children": 0.6
       }
     },
     {
@@ -244,16 +244,16 @@
     {
       "model": "gemini-3.6-flash",
       "condition": "plain",
-      "n": 10,
-      "score": 0.4718,
+      "n": 12,
+      "score": 0.4727,
       "ci95": [
-        0.4518,
-        0.4909
+        0.456,
+        0.4886
       ],
       "fully_compliant": 0.0,
       "per_check": {
         "data_itemised": 1.0,
-        "purpose_specific": 0.9,
+        "purpose_specific": 0.9167,
         "withdraw_consent": 0.0,
         "rights": 0.0,
         "nomination": 0.0,
@@ -335,6 +335,29 @@
         "language": 0.0,
         "no_foreign_law": 1.0,
         "children": 0.0
+      }
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "condition": "plain",
+      "n": 1,
+      "score": 0.4,
+      "ci95": [
+        0.4,
+        0.4
+      ],
+      "fully_compliant": 0.0,
+      "per_check": {
+        "data_itemised": 1.0,
+        "purpose_specific": 1.0,
+        "withdraw_consent": 0.0,
+        "rights": 0.0,
+        "nomination": 0.0,
+        "grievance": 0.0,
+        "board_complaint": 0.0,
+        "contact": 1.0,
+        "language": 0.0,
+        "no_foreign_law": 1.0
       }
     }
   ],
